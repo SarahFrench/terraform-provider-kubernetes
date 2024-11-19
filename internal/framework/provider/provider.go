@@ -55,16 +55,22 @@ type KubernetesProviderModel struct {
 	IgnoreAnnotations types.List `tfsdk:"ignore_annotations"`
 	IgnoreLabels      types.List `tfsdk:"ignore_labels"`
 
-	Exec []struct {
-		APIVersion types.String            `tfsdk:"api_version"`
-		Command    types.String            `tfsdk:"command"`
-		Env        map[string]types.String `tfsdk:"env"`
-		Args       []types.String          `tfsdk:"args"`
-	} `tfsdk:"exec"`
+	Exec types.List `tfsdk:"exec"`
 
-	Experiments []struct {
-		ManifestResource types.Bool `tfsdk:"manifest_resource"`
-	} `tfsdk:"experiments"`
+	Experiments types.List `tfsdk:"experiments"`
+}
+
+// ExecModel describes the provider's exec block.
+type ExecModel struct {
+	APIVersion types.String            `tfsdk:"api_version"`
+	Command    types.String            `tfsdk:"command"`
+	Env        map[string]types.String `tfsdk:"env"`
+	Args       []types.String          `tfsdk:"args"`
+}
+
+// ExperimentsModel describes the provider's experiments block.
+type ExperimentsModel struct {
+	ManifestResource types.Bool `tfsdk:"manifest_resource"`
 }
 
 func (p *KubernetesProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
