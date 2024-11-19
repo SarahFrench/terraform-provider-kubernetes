@@ -125,19 +125,24 @@ func newKubernetesClientConfig(ctx context.Context, data KubernetesProviderModel
 
 	overrides.ClusterDefaults.ProxyURL = data.ProxyURL.ValueString()
 
-	if len(data.Exec) > 0 {
-		execData := data.Exec[0]
-
-		exec := &clientcmdapi.ExecConfig{}
-		exec.InteractiveMode = clientcmdapi.IfAvailableExecInteractiveMode
-		exec.APIVersion = execData.APIVersion.ValueString()
-		exec.Command = execData.Command.ValueString()
-		exec.Args = expandStringSlice(execData.Args)
-		for kk, vv := range execData.Env {
-			exec.Env = append(exec.Env, clientcmdapi.ExecEnvVar{Name: kk, Value: vv.ValueString()})
+	if !data.Exec.IsNull() && !data.Exec.IsUnknown() {
+		var execs []ExecModel
+		diags := data.Exec.ElementsAs(ctx, &execs, true)
+		if diags.HasError() {
+			return nil, fmt.Errorf("error when processing exec arguments: %v", diags.Errors())
 		}
-
-		overrides.AuthInfo.Exec = exec
+		if len(execs) > 0 {
+			execData := execs[0]
+			exec := &clientcmdapi.ExecConfig{}
+			exec.InteractiveMode = clientcmdapi.IfAvailableExecInteractiveMode
+			exec.APIVersion = execData.APIVersion.ValueString()
+			exec.Command = execData.Command.ValueString()
+			exec.Args = expandStringSlice(execData.Args)
+			for kk, vv := range execData.Env {
+				exec.Env = append(exec.Env, clientcmdapi.ExecEnvVar{Name: kk, Value: vv.ValueString()})
+			}
+			overrides.AuthInfo.Exec = exec
+		}
 	}
 
 	cc := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loader, overrides)
